@@ -22,14 +22,24 @@ class OriginProxy:
         if not local and not allow_remote:
             raise ValueError('Remote origins require --allow-remote')
         if local:
-            self.ip = '::1' if self.host == '::1' else '127.0.0.1'
+            self.ips = ['127.0.0.1', '::1'] if self.host == 'localhost' else [self.host]
         else:
             addresses = [a[4][0] for a in socket.getaddrinfo(self.host, self.port, type=socket.SOCK_STREAM)]
             if not addresses or any(not ipaddress.ip_address(ip).is_global for ip in addresses):
                 raise ValueError('Remote origins must resolve exclusively to public IP addresses')
-            self.ip = addresses[0]
+            self.ips = list(dict.fromkeys(addresses))
         self.blocked = 0
         self.server = None
+
+    def connect(self, timeout=10):
+        # Retry only pinned addresses, never resolve the request hostname here.
+        last = None
+        for ip in self.ips:
+            try:
+                return socket.create_connection((ip, self.port), timeout=timeout)
+            except OSError as exc:
+                last = exc
+        raise OSError('Selected origin is unreachable at its pinned addresses') from last
 
     def matches(self, url):
         try:
@@ -56,7 +66,7 @@ class OriginProxy:
                 if not allowed:
                     return self.denied()
                 try:
-                    with socket.create_connection((owner.ip, owner.port), timeout=10) as upstream:
+                    with owner.connect() as upstream:
                         self.send_response(200, 'Connection Established'); self.end_headers()
                         streams = [self.connection, upstream]
                         deadline = time.monotonic() + 120
@@ -79,8 +89,9 @@ class OriginProxy:
                     p = urlsplit(self.path)
                     headers = {k: v for k, v in self.headers.items() if k.lower() not in ('host', 'connection', 'proxy-connection', 'proxy-authorization', 'transfer-encoding', 'upgrade')}
                     headers['Host'] = p.netloc
-                    connection = http.client.HTTPConnection(owner.ip, owner.port, timeout=15)
+                    connection = http.client.HTTPConnection(owner.host, owner.port, timeout=15)
                     try:
+                        connection.sock = owner.connect(timeout=5)
                         connection.request(self.command, p.path or '/' if not p.query else (p.path or '/') + '?' + p.query,
                                            self.rfile.read(length) if length else None, headers)
                         response = connection.getresponse()

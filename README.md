@@ -27,9 +27,15 @@ In a separate terminal, run `python -m http.server 8765 --bind 127.0.0.1 --direc
 
 The example creates a synthetic note offline, reloads through a service worker, then checks the note count and queue state after reconnect. `fixed.html` passes. Change the URL to `broken.html` to see the duplicate-entry failure. The demo queue drains locally after an HTTP reachability check; it does not implement a backend sync service.
 
-The scenario requires `phases.online`, `phases.offline`, `phases.offline_reload` and `phases.reconnect`. Each phase has optional `actions` and mandatory `assertions`. Actions are `click` with a selector, `fill` with selector/value, or `wait` with `ms`. Assertions are `visible`, `hidden`, `focused`, `count` or `text`; count and text require `value`. Assertions are repeated after `stability_ms` (default 250) to catch a state that was only briefly correct.
+The scenario requires `phases.online`, `phases.offline`, `phases.offline_reload` and `phases.reconnect`. Each phase has optional `actions` and mandatory `assertions`. Actions are `click` with a selector, `fill` with selector/value, or `wait` with `ms`. Assertions are `visible`, `hidden`, `focused`, `count` or `text`; count and text require `value`. Assertions are sampled together throughout `stability_ms` (default 250).
 
 Reports are local JSON and self-contained HTML. Exit status is 0 for a pass, 1 for findings, and 2 for an input or runtime setup error. Commands do not publish reports or contact a model API.
+
+## Input and runtime details
+
+Chromium starts with its sandbox enabled. The selected `localhost` origin tries the pinned loopback addresses 127.0.0.1 and ::1. An unavailable initial page is a setup error (exit 2); a failed DOM contract is a finding (exit 1).
+
+Assertion selectors must be standard CSS in the main document. All predicates are evaluated together in one JavaScript turn, sampled every 25 ms. They must pass together throughout the sampled `stability_ms` window (default 250 ms). A failed sample resets that window. The total deadline is the largest assertion `timeout_ms` (default 1000 ms, maximum 5000 ms) plus `stability_ms`. Changes between samples can be missed. Count checks all matching nodes; other predicates require one node, except that hidden also accepts no match. Text comparison collapses whitespace. Shadow-root and Playwright-specific assertion selectors are outside this version. Action selectors retain Playwright syntax.
 
 ## Boundaries
 

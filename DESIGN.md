@@ -1,16 +1,12 @@
-# Version 0.1 design
+# Design
 
-Run explicit browser assertions through online, offline, offline reload and reconnect phases. Check that locally created data survives and remains unique after reconnection.
+Check browser contracts through offline mode, reload and reconnection.
 
-The design was reviewed once through a read-only Claude adapter before implementation. That consultation received feature proposals and synthetic examples, not repository contents or credentials. Implementation and local verification were performed separately; the consultation was a design review, not a code audit.
+Chromium starts with its sandbox enabled. The selected `localhost` origin tries the pinned loopback addresses 127.0.0.1 and ::1. An unavailable initial page is a setup error (exit 2); a failed DOM contract is a finding (exit 1).
 
-The selected scope favours explicit user contracts and local evidence. Automatic uploads, model-generated pass criteria, background monitoring and publishing are excluded. This version makes no claim that the idea is unique or that it will attract a particular number of GitHub stars.
+Assertion selectors must be standard CSS in the main document. All predicates are evaluated together in one JavaScript turn, sampled every 25 ms. They must pass together throughout the sampled `stability_ms` window (default 250 ms). A failed sample resets that window. The total deadline is the largest assertion `timeout_ms` (default 1000 ms, maximum 5000 ms) plus `stability_ms`. Changes between samples can be missed. Count checks all matching nodes; other predicates require one node, except that hidden also accepts no match. Text comparison collapses whitespace. Shadow-root and Playwright-specific assertion selectors are outside this version. Action selectors retain Playwright syntax.
 
-## Acceptance evidence
-
-Set `BROWSER_TEST=1` after installing Chromium, or set `TEST_BROWSER` to an existing Chromium executable. The integration test verifies offline reload, duplicate detection after reconnect, and storage separation between runs.
-
-## Deliberate limits
+## Scope
 
 A fresh context is created for every run and retained through the four phases. Failed phases stop the run; later phases are marked unreached. No cookies, storage, response bodies or page console messages are written to reports. Scenario values and selectors stay in the local input file.
 

@@ -1,5 +1,6 @@
 import argparse
 import json
+import sys
 from .runner import run
 from .safeio import read_json, report
 
@@ -11,7 +12,9 @@ def main(argv=None):
     try:
         result = run(read_json(args.scenario), args.browser, args.allow_remote)
         report(result, args.out)
+        for phase in result['phases']:
+            if phase.get('error'): print(phase['error'], file=sys.stderr)
         print(json.dumps({'status': result['status']}))
-        return int(result['status'] != 'pass')
+        return 2 if result['status'] == 'error' else int(result['status'] != 'pass')
     except Exception as exc:
-        parser.exit(2, f'Cannot run scenario ({type(exc).__name__}). Check the scenario, server and installed browser.\n')
+        parser.exit(2, f'Cannot run scenario : {exc}. Check the scenario, server and installed browser.\n')
