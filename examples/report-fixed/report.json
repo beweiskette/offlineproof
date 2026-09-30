@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "status": "pass",
+  "phases": [
+    {
+      "phase": "online",
+      "status": "pass",
+      "failures": []
+    },
+    {
+      "phase": "offline",
+      "status": "pass",
+      "failures": []
+    },
+    {
+      "phase": "offline_reload",
+      "status": "pass",
+      "failures": []
+    },
+    {
+      "phase": "reconnect",
+      "status": "pass",
+      "failures": []
+    }
+  ],
+  "scope": "Browser network emulation and explicit DOM contracts. Backend delivery is not inferred."
+}

@@ -1,0 +1,73 @@
+{
+  "url": "http://127.0.0.1:8765/fixed.html",
+  "phases": {
+    "online": {
+      "assertions": [
+        {
+          "kind": "text",
+          "selector": "#ready",
+          "value": "ready",
+          "timeout_ms": 5000
+        },
+        {
+          "kind": "count",
+          "selector": "#notes li",
+          "value": 0
+        }
+      ]
+    },
+    "offline": {
+      "actions": [
+        {
+          "kind": "fill",
+          "selector": "#note",
+          "value": "Synthetic offline note"
+        },
+        {
+          "kind": "click",
+          "selector": "#add"
+        }
+      ],
+      "assertions": [
+        {
+          "kind": "count",
+          "selector": "#notes li",
+          "value": 1
+        },
+        {
+          "kind": "text",
+          "selector": "#state",
+          "value": "pending"
+        }
+      ]
+    },
+    "offline_reload": {
+      "assertions": [
+        {
+          "kind": "count",
+          "selector": "#notes li",
+          "value": 1
+        },
+        {
+          "kind": "text",
+          "selector": "#notes li",
+          "value": "Synthetic offline note"
+        }
+      ]
+    },
+    "reconnect": {
+      "assertions": [
+        {
+          "kind": "count",
+          "selector": "#notes li",
+          "value": 1
+        },
+        {
+          "kind": "text",
+          "selector": "#state",
+          "value": "synced"
+        }
+      ]
+    }
+  }
+}
