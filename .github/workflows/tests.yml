@@ -25,6 +25,20 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install -e ".[test]"
       - run: python -m playwright install --with-deps chromium
+      - name: Allow the test browser to create its sandbox namespaces
+        shell: bash
+        run: |
+          browsers=("$HOME"/.cache/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell)
+          test "${#browsers[@]}" -eq 1
+          test -x "${browsers[0]}"
+          cat > "$RUNNER_TEMP/beweiskette-playwright.apparmor" <<EOF
+          abi <abi/4.0>,
+          include <tunables/global>
+          profile beweiskette-playwright "${browsers[0]}" flags=(unconfined) {
+            userns,
+          }
+          EOF
+          sudo apparmor_parser -r "$RUNNER_TEMP/beweiskette-playwright.apparmor"
       - run: python -m pytest -q -m integration
         env:
           BROWSER_TEST: '1'

@@ -9,3 +9,5 @@ Real Chromium tests cover offline reload, duplicate detection, fresh storage, mu
 The current wheel builds with `python -m pip wheel --no-deps .` using pip's isolated build environment. CLI help succeeds. German README validation with schreibwaechter and locale de-CH reports 0 errors and 0 warnings. Only synthetic test inputs were used.
 
 CI results are available at [GitHub Actions](https://github.com/beweiskette/offlineproof/actions). See SECURITY.md for report contents and runtime boundaries.
+
+The Ubuntu integration runner loads an AppArmor profile for the exact downloaded headless-shell executable, allowing the user namespaces needed by Chromium. The browser sandbox remains enabled. The initial CI run reproduced the runner restriction before this setup change. See [Chromium documentation](https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md).
