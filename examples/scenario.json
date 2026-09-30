@@ -65,7 +65,8 @@
         {
           "kind": "text",
           "selector": "#state",
-          "value": "synced"
+          "value": "synced",
+          "timeout_ms": 5000
         }
       ]
     }

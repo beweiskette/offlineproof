@@ -24,10 +24,10 @@ def test_real_offline_reload_and_duplicate_detection():
         spec = json.loads((Path(__file__).parents[1] / 'examples' / 'scenario.json').read_text())
         spec['url'] = f'http://127.0.0.1:{server.server_port}/fixed.html'
         good = run(spec, executable)
-        assert good['status'] == 'pass', good
+        assert good['status'] == 'pass', json.dumps(good)
         spec['url'] = spec['url'].replace('fixed.html', 'broken.html')
         bad = run(spec, executable)
-        assert bad['status'] == 'fail', bad
+        assert bad['status'] == 'fail', json.dumps(bad)
         assert [p['status'] for p in bad['phases']] == ['pass', 'pass', 'pass', 'fail'], bad
         # A new invocation must not inherit the previous localStorage or worker.
         spec['url'] = spec['url'].replace('broken.html', 'fixed.html')
